@@ -598,7 +598,7 @@ export function createEntity(definition, cb) {
     cb(entity);
   });
 
-  AFRAME.scenes[0].appendChild(entity);
+  AFRAME.INSPECTOR.selectedEntity.appendChild(entity);
 
   return entity;
 }
