@@ -21739,13 +21739,10 @@ var Toolbar = function (_React$Component) {
     var _this = _possibleConstructorReturn(this, (Toolbar.__proto__ || Object.getPrototypeOf(Toolbar)).call(this, props));
 
     _this.writeChanges = function () {
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', 'http://localhost:51234/save');
-      xhr.onerror = function () {
-        alert('aframe-watcher not running. This feature requires a companion service running locally. npm install aframe-watcher to save changes back to file. Read more at supermedium.com/aframe-watcher');
-      };
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.send(JSON.stringify(AFRAME.INSPECTOR.history.updates));
+      var fileString = _this.getUpperHTML() + document.querySelector("a-scene").outerHTML;
+
+      console.log(fileString);
+      _this.download("index.html", fileString);
     };
 
     _this.toggleScenePlaying = function () {
@@ -21831,6 +21828,25 @@ var Toolbar = function (_React$Component) {
           })
         )
       );
+    }
+  }, {
+    key: 'download',
+    value: function download(filename, text) {
+      var element = document.createElement('a');
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+      element.setAttribute('download', filename);
+
+      element.style.display = 'none';
+      document.body.appendChild(element);
+
+      element.click();
+
+      document.body.removeChild(element);
+    }
+  }, {
+    key: 'getUpperHTML',
+    value: function getUpperHTML() {
+      return '\n<!-- include aframe -->\n<script src="https://aframe.io/releases/0.9.2/aframe.min.js"></script>\n<!-- include ar.js -->\n<script src="https://cdn.rawgit.com/jeromeetienne/AR.js/1.7.2/aframe/build/aframe-ar.js"></script>\n<!-- to load .ply model -->\n<script src="https://rawgit.com/donmccurdy/aframe-extras/v3.13.1/dist/aframe-extras.loaders.min.js"></script>\n\n<!-- END: Top HTML -->\n<script>\n    AFRAME.registerComponent(\'button\', {\n        init: function () {\n            var elem = document.documentElement;\n            var marker = document.querySelector("#marker");\n            var fullbutton = document.querySelector("#fullscreen");\n            var button = document.querySelector("#mutebutton");\n            var Video_1 = document.querySelector("#Video_Asset_1");\n            var Plane_2 = document.querySelector("#Plane_2");\n            marker.addEventListener("markerFound", function (evt) {\n                Video_1.play();\n            });\n            marker.addEventListener("markerLost", function (evt) {\n                Video_1.pause();\n            });\n            button.addEventListener("click", function (evt) {\n                console.log("button clicked")\n                if (Video_1.muted == true) {\n                    button.innerHTML = "Mute";\n                    Video_1.muted = false;\n                } else {\n                    button.innerHTML = "Unmute";\n                    Video_1.muted = true;\n                }\n            });\n            Plane_2.addEventListener("mousedown", function (evt) {\n                open("https://www.unity.com");\n            });\n            fullbutton.addEventListener("click", function (evt) {\n                if (elem.requestFullscreen) {\n                    elem.requestFullscreen();\n                } else if (elem.mozRequestFullScreen) {\n                    /* Firefox */\n                    elem.mozRequestFullScreen();\n                } else if (elem.webkitRequestFullscreen) {\n                    /* Chrome, Safari and Opera */\n                    elem.webkitRequestFullscreen();\n                } else if (elem.msRequestFullscreen) {\n                    /* IE/Edge */\n                    elem.msRequestFullscreen();\n                }\n            });\n        }\n    });\n</script>\n<div style=\'position: absolute; bottom: 10px; right: 30px; width:100%; text-align: center; z-index: 1;\'>\n    <button id="mutebutton" style=\'position: absolute; bottom: 10px\'>\n        Unmute\n    </button>\n</div>\n<div style=\'position: absolute; bottom: 5px; right: 30px; width:100%; text-align: left; z-index: 1;\'>\n    <input type="image" id="fullscreen" src="fullscreen.png" style=\'position: absolute; bottom: 0px; left: 35px;\'>\n    </input>\n</div>';
     }
   }]);
 

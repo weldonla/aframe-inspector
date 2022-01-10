@@ -52,7 +52,7 @@ export default class Toolbar extends React.Component {
     filterHelpers(scene, false);
     AFRAME.INSPECTOR.exporters.gltf.parse(
       scene,
-      function(buffer) {
+      function (buffer) {
         filterHelpers(scene, true);
         const blob = new Blob([buffer], { type: 'application/octet-stream' });
         saveBlob(blob, sceneName + '.glb');
@@ -69,27 +69,33 @@ export default class Toolbar extends React.Component {
    * Try to write changes with aframe-inspector-watcher.
    */
   writeChanges = () => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', 'http://localhost:51234/save');
-    xhr.onerror = () => {
-      alert('aframe-watcher not running. This feature requires a companion service running locally. npm install aframe-watcher to save changes back to file. Read more at supermedium.com/aframe-watcher');
-    };
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.send(JSON.stringify(AFRAME.INSPECTOR.history.updates));
+    const markerChildren = document.querySelector("a-scene").children;
+    for(var i=0; i<markerChildren.length; i++) {
+      var editedChild = AFRAME.INSPECTOR.history.updates[markerChildren[i].id];
+      for (const property in editedChild) {
+        console.log(property);
+        console.log(markerChildren[i][property]);
+        console.log(editedChild[property]);
+        markerChildren[i].setAttribute(property, editedChild[property]);
+      }
+    }
+
+    const fileString = this.getUpperHTML() + document.querySelector("a-scene").outerHTML;
+    this.download("index.html", fileString);
   };
 
   toggleScenePlaying = () => {
     if (this.state.isPlaying) {
       AFRAME.scenes[0].pause();
-      this.setState({isPlaying: false});
+      this.setState({ isPlaying: false });
       AFRAME.scenes[0].isPlaying = true;
       document.getElementById('aframeInspectorMouseCursor').play();
       return;
     }
     AFRAME.scenes[0].isPlaying = false;
     AFRAME.scenes[0].play();
-    this.setState({isPlaying: true});
-  }
+    this.setState({ isPlaying: true });
+  };
 
   render() {
     const watcherClassNames = classnames({
@@ -128,4 +134,87 @@ export default class Toolbar extends React.Component {
       </div>
     );
   }
+
+  download(filename, text) {
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' +
+      encodeURIComponent(text));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
+  }
+
+  getUpperHTML() {
+    return (
+      `
+<!-- include aframe -->
+<script src="https://aframe.io/releases/0.9.2/aframe.min.js"></script>
+<!-- include ar.js -->
+<script src="https://cdn.rawgit.com/jeromeetienne/AR.js/1.7.2/aframe/build/aframe-ar.js"></script>
+<!-- to load .ply model -->
+<script src="https://rawgit.com/donmccurdy/aframe-extras/v3.13.1/dist/aframe-extras.loaders.min.js"></script>
+
+<!-- END: Top HTML -->
+<script>
+    AFRAME.registerComponent('button', {
+        init: function () {
+            var elem = document.documentElement;
+            var marker = document.querySelector("#marker");
+            var fullbutton = document.querySelector("#fullscreen");
+            var button = document.querySelector("#mutebutton");
+            var Video_1 = document.querySelector("#Video_Asset_1");
+            var Plane_2 = document.querySelector("#Plane_2");
+            marker.addEventListener("markerFound", function (evt) {
+                Video_1.play();
+            });
+            marker.addEventListener("markerLost", function (evt) {
+                Video_1.pause();
+            });
+            button.addEventListener("click", function (evt) {
+                console.log("button clicked")
+                if (Video_1.muted == true) {
+                    button.innerHTML = "Mute";
+                    Video_1.muted = false;
+                } else {
+                    button.innerHTML = "Unmute";
+                    Video_1.muted = true;
+                }
+            });
+            Plane_2.addEventListener("mousedown", function (evt) {
+                open("https://www.unity.com");
+            });
+            fullbutton.addEventListener("click", function (evt) {
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                } else if (elem.mozRequestFullScreen) {
+                    /* Firefox */
+                    elem.mozRequestFullScreen();
+                } else if (elem.webkitRequestFullscreen) {
+                    /* Chrome, Safari and Opera */
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) {
+                    /* IE/Edge */
+                    elem.msRequestFullscreen();
+                }
+            });
+        }
+    });
+</script>
+<div style='position: absolute; bottom: 10px; right: 30px; width:100%; text-align: center; z-index: 1;'>
+    <button id="mutebutton" style='position: absolute; bottom: 10px'>
+        Unmute
+    </button>
+</div>
+<div style='position: absolute; bottom: 5px; right: 30px; width:100%; text-align: left; z-index: 1;'>
+    <input type="image" id="fullscreen" src="fullscreen.png" style='position: absolute; bottom: 0px; left: 35px;'>
+    </input>
+</div>`
+    );
+  }
+
 }
