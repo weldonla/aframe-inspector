@@ -69,17 +69,6 @@ export default class Toolbar extends React.Component {
    * Try to write changes with aframe-inspector-watcher.
    */
   writeChanges = () => {
-    const markerChildren = document.querySelector("a-scene").children;
-    for(var i=0; i<markerChildren.length; i++) {
-      var editedChild = AFRAME.INSPECTOR.history.updates[markerChildren[i].id];
-      for (const property in editedChild) {
-        console.log(property);
-        console.log(markerChildren[i][property]);
-        console.log(editedChild[property]);
-        markerChildren[i].setAttribute(property, editedChild[property]);
-      }
-    }
-
     const fileString = this.getUpperHTML() + document.querySelector("a-scene").outerHTML;
     this.download("index.html", fileString);
   };
